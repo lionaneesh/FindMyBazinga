@@ -7,10 +7,10 @@
 import vlc # libVLC
 import time
 import pysrt
-import os
+import os, sys
 
 video_formats = [".mp4", ".avi"]
-DIR = '/home/aneesh/The Big Bang Theory'
+
 
 BUFFER = 0.5
 
@@ -29,7 +29,7 @@ def play(file, sub, mediaPlayer):
 
     mediaPlayer.pause()
 
-def find_media_files(media_files):
+def find_media_files(media_files, DIR):
     print "Finding media files in ", DIR
     for dirpath, dirs, files in os.walk(DIR):
         for filename in files:
@@ -40,7 +40,12 @@ def find_media_files(media_files):
                 if os.path.exists(subtitle_path):
                     media_files.append((file_path, subtitle_path))
 
+if len(sys.argv) != 3:
+    print "Usage: %s <DIR_PATH> <PHRASE>" % (sys.argv[0],)
+    exit(1)
 
+DIR    = sys.argv[1]
+phrase = sys.argv[2]
 instance = vlc.Instance()
 mediaPlayer = instance.media_player_new()
 mediaPlayer_list = instance.media_list_new()
@@ -48,7 +53,7 @@ listMediaPlayer = instance.media_list_player_new()
 listMediaPlayer.set_media_list(mediaPlayer_list)
 listMediaPlayer.set_media_player(mediaPlayer)
 media_files = []
-find_media_files(media_files)
+find_media_files(media_files, DIR)
 
 req_subs = [] # (file, sub)
 
@@ -56,7 +61,7 @@ for m in media_files:
     print m[1]
     subs = pysrt.open(m[1], encoding='iso-8859-1')
     for s in subs:
-        if "bazinga" in s.text.lower():
+        if phrase in s.text.lower():
             req_subs.append((m[0], s))
 
 for r in range(0, len(req_subs)):
